@@ -1,0 +1,345 @@
+views:
+  - title: Home
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Master Power
+            heading_style: title
+          - type: button
+            name: Turn ON All
+            icon: mdi:power-plug
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_all_exhibits
+          - type: button
+            name: Turn OFF All
+            icon: mdi:power-plug-off
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_off_all_exhibits
+      - type: grid
+        cards:
+          - type: heading
+            heading: 'GRFT+ PC '
+            heading_style: title
+            grid_options:
+              rows: 1
+            icon: mdi:spray
+          - type: button
+            entity: switch.grafiti_wall_master_power
+            name: Grafiti Wall System
+            show_name: true
+            show_icon: true
+            show_state: true
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_pc_msi
+              target: {}
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Turn OFF PC
+            icon: mdi:logout
+            entity: button.grafiti_wall_grafiti_2026_shutdown
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Restart PC
+            icon: mdi:restart
+            entity: button.grafiti_wall_grafiti_2026_restart
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON Projector
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_grft_projector_2026
+              target: {}
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.turn_off_grft_2026_projector
+            icon: mdi:video-off
+            name: Turn OFF Projector
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_off_grft_2026_projector
+              target: {}
+            color: red
+      - type: grid
+        cards:
+          - type: heading
+            heading: Brelyon PC
+            heading_style: title
+            icon: mdi:monitor-shimmer
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_pc_brelyon
+              target: {}
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: button.desktop_brelyon_desktop_brelyon_shutdown
+            name: Turn OFF
+            icon: mdi:logout
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: button.desktop_brelyon_desktop_brelyon_restart
+            name: Restart
+            icon: mdi:restart
+      - type: grid
+        cards:
+          - type: heading
+            heading: HoloTube
+            heading_style: title
+            icon: mdi:cylinder
+          - type: button
+            entity: switch.holotube_master_power
+            name: Toggle Holotube
+            show_name: true
+            show_icon: true
+            show_state: true
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_holotube
+              target: {}
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: button.holotube2026_holotube2026_shutdown
+            name: Turn OFF PC
+            icon: mdi:logout
+            color: none
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Restart
+            icon: mdi:restart
+            entity: button.holotube2026_holotube2026_restart
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.holobox_screen_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
+      - type: grid
+        cards:
+          - type: heading
+            heading: Looking Glass 65
+            heading_style: title
+            icon: mdi:mirror-rectangle
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_looking_glass_2026
+              target: {}
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: button.looking_glass_looking_glass_shutdown
+            name: Turn OFF
+            icon: mdi:logout
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Restart
+            icon: mdi:restart
+            entity: button.looking_glass_looking_glass_restart
+      - type: grid
+        cards:
+          - type: heading
+            heading_style: title
+            heading: Transparent Screen
+            icon: mdi:square-opacity
+          - type: button
+            entity: switch.transparent_screen_master_power
+            name: Transparent Screen
+            show_name: true
+            show_icon: true
+            show_state: true
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_transparent_screen_2026
+              target: {}
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: button.transparent_screen_transparent_screen_shutdown
+            name: Turn OFF
+            icon: mdi:logout
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Restart
+            icon: mdi:restart
+            entity: button.transparent_screen_transparent_screen_restart
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.pinball_screen_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
+      - type: grid
+        cards:
+          - type: heading
+            heading: ORT Table
+            heading_style: title
+            icon: mdi:table-furniture
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.wake_on_lan_and_ping
+            icon: mdi:desktop-classic
+            name: Turn ON PC
+            show_state: false
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_touchtable
+              target: {}
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Turn OFF PC
+            icon: mdi:logout
+            entity: button.touch_table_touch_table_2026_shutdown
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            name: Restart PC
+            icon: mdi:restart
+            entity: button.touch_table_touch_table_2026_restart
+      - type: grid
+        cards:
+          - type: heading
+            heading: MYVRS
+            heading_style: title
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.oled_screen_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
+      - type: grid
+        cards:
+          - type: heading
+            heading: Holoplate
+            heading_style: title
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.smart_plug_6_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
+      - type: grid
+        cards:
+          - type: heading
+            heading_style: title
+            heading: ORA
+            icon: mdi:crystal-ball
+          - type: button
+            name: Turn ON MAC
+            icon: mdi:desktop-classic
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_on_ora_mac
+            color: primary
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.turn_off_ora_mac
+            icon: mdi:power
+            name: Shutdown Mac Mini
+            tap_action:
+              action: perform-action
+              perform_action: script.turn_off_ora_mac
+              target: {}
+            color: red
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: script.restart_ora_mac
+            icon: mdi:restart
+            name: Restart Mac Mini
+            tap_action:
+              action: perform-action
+              perform_action: script.restart_ora_mac
+              target: {}
+            color: orange
+    header:
+      card:
+        type: markdown
+        content: HA 2026
+        text_only: true
