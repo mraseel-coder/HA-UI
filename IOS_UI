@@ -1,0 +1,1814 @@
+button_card_templates:
+  glass_card:
+    styles:
+      card:
+        - background: rgba(255, 255, 255, 0.07)
+        - border: 1px solid rgba(255, 255, 255, 0.11)
+        - border-radius: 20px
+        - backdrop-filter: blur(32px) saturate(180%)
+        - '-webkit-backdrop-filter': blur(32px) saturate(180%)
+        - padding: 20px
+        - box-shadow: none
+        - color: '#e8edf8'
+        - cursor: default
+  section_heading:
+    show_name: true
+    show_icon: false
+    styles:
+      card:
+        - background: transparent
+        - border: none
+        - box-shadow: none
+        - padding: 20px 0 5px 5px
+    name: |
+      [[[
+        return `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <ha-icon icon="${variables.icon}" style="width:18px; color:rgba(232,237,248,0.5);"></ha-icon>
+            <div style="font-size:14px; font-weight:600; color:rgba(232,237,248,0.5); letter-spacing:0.06em;">
+              ${variables.title}
+            </div>
+          </div>
+        `;
+      ]]]
+  pc_card:
+    template: glass_card
+    show_name: false
+    show_icon: false
+    triggers_update: all
+    styles:
+      grid:
+        - grid-template-areas: '"header" "actions"'
+        - grid-template-columns: 1fr
+        - grid-template-rows: min-content min-content
+    custom_fields:
+      header:
+        card:
+          type: custom:button-card
+          triggers_update: all
+          show_name: true
+          show_icon: false
+          styles:
+            card:
+              - background: transparent
+              - border: none
+              - box-shadow: none
+              - padding: 0
+              - cursor: pointer
+          name: |
+            [[[
+              const eid = variables.ping_entity;
+              const s = eid ? states[eid] : null;
+              const online = s && s.state === 'on';
+              const offline = s && s.state === 'off';
+              const statusHtml = online
+                ? '<span style="color:#4ade80">● Online</span>'
+                : offline
+                  ? '<span style="color:#f87171">● Offline</span>'
+                  : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+              return `
+                <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                  <div style="width:44px; height:44px; border-radius:12px; background:${variables.icon_bg}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <ha-icon icon="${variables.pc_icon}" style="width:24px; color:${variables.theme_color};"></ha-icon>
+                  </div>
+                  <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                    <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">${variables.pc_name}</div>
+                    <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px; line-height:1.2;">${statusHtml}</div>
+                  </div>
+                </div>
+              `;
+            ]]]
+      actions:
+        card:
+          type: custom:button-card
+          triggers_update: all
+          show_name: true
+          show_icon: false
+          styles:
+            card:
+              - background: transparent
+              - border: none
+              - box-shadow: none
+              - padding: 0
+            name:
+              - width: 100%
+              - padding: 0
+              - margin: 0
+          name: |
+            [[[
+              window._globalHass = hass;
+              const eid = variables.ping_entity;
+              const s = eid ? states[eid] : null;
+              const online = s && s.state === 'on';
+
+              const btn = (label, icon, color, bg, border, enabled, action) => `
+                <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                  style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+                  padding:10px 4px; border-radius:14px;
+                  border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                  background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                  color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                  font-size:11.5px; font-weight:500;
+                  cursor:${enabled ? 'pointer' : 'not-allowed'}; box-sizing:border-box;"
+                  onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                  onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                  onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                  <ha-icon icon="${icon}" style="width:20px; height:20px;"></ha-icon>
+                  <div style="white-space:nowrap;">${label}</div>
+                </div>
+              `;
+
+              const turnOnAction  = `window._globalHass.callService('script','turn_on',{entity_id:'${variables.turn_on_script}'});`;
+              const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'${variables.turn_off_btn}'});`;
+              const restartAction = `window._globalHass.callService('button','press',{entity_id:'${variables.restart_btn}'});`;
+
+              const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+              const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+              const powerColor  = online ? '#f87171' : '#4ade80';
+              const powerBg      = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+              const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+              const powerAction = online ? shutOffAction : turnOnAction;
+
+              return `
+                <div style="display:flex; gap:8px; width:100%; box-sizing:border-box;">
+                  ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                  ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                </div>
+              `;
+            ]]]
+views:
+  - title: Home
+    panel: true
+    cards:
+      - type: custom:button-card
+        styles:
+          grid:
+            - grid-template-areas: '"dashboard"'
+            - grid-template-columns: minmax(auto, 1180px)
+            - justify-content: center
+          card:
+            - min-height: 100vh
+            - width: 100%
+            - margin: '-8px 0 0 -8px'
+            - padding: 40px 20px
+            - box-sizing: border-box
+            - border-radius: 0
+            - border: none
+            - cursor: default
+            - background: >-
+                radial-gradient(ellipse 80% 60% at 15% 10%, rgba(29,78,216,0.45)
+                0%, transparent 65%), radial-gradient(ellipse 60% 70% at 85%
+                20%, rgba(16,185,129,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 50% at 50% 90%,
+                rgba(109,40,217,0.22) 0%, transparent 60%),
+                linear-gradient(160deg, #0a1628 0%, #0d1b3e 40%, #0a1a2e 100%)
+            - background-attachment: fixed
+        custom_fields:
+          dashboard:
+            card:
+              type: custom:layout-card
+              layout_type: custom:grid-layout
+              layout:
+                grid-template-columns: 1fr
+                grid-gap: 20px
+                width: 100%
+              cards:
+                - type: custom:layout-card
+                  layout_type: custom:grid-layout
+                  layout:
+                    grid-template-columns: 1fr
+                    justify-items: center
+                    grid-gap: 12px
+                  cards:
+                    - type: custom:button-card
+                      name: |
+                        [[[
+                          return `
+                            <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                              <ha-icon icon="mdi:earth" style="width:18px; color:rgba(232,237,248,0.5);"></ha-icon>
+                              <div style="font-size:14px; font-weight:600; color:rgba(232,237,248,0.5); letter-spacing:0.06em;">
+                                MASTER POWER
+                              </div>
+                            </div>
+                          `;
+                        ]]]
+                      styles:
+                        card:
+                          - background: transparent
+                          - border: none
+                          - box-shadow: none
+                          - padding: 0
+                    - type: custom:layout-card
+                      layout_type: custom:grid-layout
+                      layout:
+                        grid-template-columns: max-content max-content
+                        grid-gap: 16px
+                        justify-content: center
+                      cards:
+                        - type: custom:button-card
+                          name: POWER ON ALL
+                          icon: mdi:power-plug
+                          styles:
+                            card:
+                              - background: >-
+                                  linear-gradient(135deg, rgba(255,255,255,0.08)
+                                  0%, rgba(255,255,255,0.02) 100%)
+                              - border: 1px solid rgba(255,255,255,0.15)
+                              - border-radius: 16px
+                              - padding: 12px 24px
+                              - backdrop-filter: blur(20px)
+                              - box-shadow: 0 8px 24px rgba(0,0,0,0.15)
+                              - transition: all 0.2s ease
+                            name:
+                              - color: '#fff'
+                              - font-size: 12.5px
+                              - font-weight: 600
+                              - letter-spacing: 0.1em
+                            icon:
+                              - color: '#4ade80'
+                              - width: 22px
+                              - filter: drop-shadow(0 0 6px rgba(74,222,128,0.4))
+                          tap_action:
+                            action: perform-action
+                            perform_action: script.turn_on_all_exhibits
+                        - type: custom:button-card
+                          name: POWER OFF ALL
+                          icon: mdi:power-plug-off
+                          styles:
+                            card:
+                              - background: >-
+                                  linear-gradient(135deg, rgba(255,255,255,0.08)
+                                  0%, rgba(255,255,255,0.02) 100%)
+                              - border: 1px solid rgba(255,255,255,0.15)
+                              - border-radius: 16px
+                              - padding: 12px 24px
+                              - backdrop-filter: blur(20px)
+                              - box-shadow: 0 8px 24px rgba(0,0,0,0.15)
+                              - transition: all 0.2s ease
+                            name:
+                              - color: '#fff'
+                              - font-size: 12.5px
+                              - font-weight: 600
+                              - letter-spacing: 0.1em
+                            icon:
+                              - color: '#f87171'
+                              - width: 22px
+                              - filter: drop-shadow(0 0 6px rgba(248,113,113,0.4))
+                          tap_action:
+                            action: perform-action
+                            perform_action: script.turn_off_all_exhibits
+                - type: custom:button-card
+                  template: section_heading
+                  variables:
+                    title: WORKSTATIONS
+                    icon: mdi:desktop-tower-monitor
+                - type: custom:layout-card
+                  layout_type: custom:grid-layout
+                  layout:
+                    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+                    grid-gap: 16px
+                  cards:
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.grft_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.grft_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['switch.grafiti_wall_master_power'];
+                                const online = s && s.state === 'on';
+                                const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : '<span style="color:#f87171">● Offline</span>';
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(96,165,250,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:projector-screen" style="width:24px; color:#60a5fa;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">GRFT+</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['switch.grafiti_wall_master_power'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction = `window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_pc_msi'}); window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_grft_projector_2026'});`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.grafiti_wall_grafiti_2026_shutdown'}); setTimeout(() => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_off_grft_2026_projector'}); }, 50000);`;
+                                const restartAction = "window._globalHass.callService('button','press',{entity_id:'button.grafiti_wall_grafiti_2026_restart'});";
+                                
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.transparent_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.transparent_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['switch.transparent_screen_master_power'];
+                                const online = s && s.state === 'on';
+                                const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : '<span style="color:#f87171">● Offline</span>';
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(74,222,128,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:square-opacity" style="width:24px; color:#4ade80;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">Transparent Screen</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['switch.transparent_screen_master_power'];
+                                const online = s && s.state === 'on';
+
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+
+                                const turnOnAction = `window._globalHass.callService('switch','turn_on',{entity_id:'switch.transparent_screen_master_power'}); setTimeout(() => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_transparent_screen_2026'}); }, 1000);`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.transparent_screen_transparent_screen_shutdown'}); setTimeout(() => { window._globalHass.callService('switch','turn_off',{entity_id:'switch.transparent_screen_master_power'}); }, 60000);`;
+                                const restartAction = "window._globalHass.callService('button','press',{entity_id:'button.transparent_screen_transparent_screen_restart'});";
+
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.looking_glass_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.looking_glass_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['binary_sensor.looking_glass_ping'];
+                                const online = s && s.state === 'on';
+                                const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : '<span style="color:#f87171">● Offline</span>';
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(168,85,247,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:mirror-rectangle" style="width:24px; color:#a855f7;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">Looking Glass 65'</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['binary_sensor.looking_glass_ping'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = `window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_looking_glass_2026'});`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.looking_glass_looking_glass_shutdown'});`;
+                                const restartAction = `window._globalHass.callService('button','press',{entity_id:'button.looking_glass_looking_glass_restart'});`;
+                                
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.brelyon_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.brelyon_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['binary_sensor.192_168_10_60'];
+                                let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                                if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                                else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(45,212,191,0.15); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:monitor-shimmer" style="width:24px; color:#2dd4bf;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">Brelyon</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['binary_sensor.192_168_10_60'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = `window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_pc_brelyon'});`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.desktop_brelyon_desktop_brelyon_shutdown'});`;
+                                const restartAction = `window._globalHass.callService('button','press',{entity_id:'button.desktop_brelyon_desktop_brelyon_restart'});`;
+                                
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.holotube_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.holotube_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['binary_sensor.192_168_10_62'];
+                                let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                                if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                                else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(167,139,250,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:cylinder" style="width:24px; color:#a78bfa;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">HoloTube</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['binary_sensor.192_168_10_62'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = `window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_holotube'}); window._globalHass.callService('switch','turn_on',{entity_id:'switch.holobox_screen_socket_1'});`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.holotube2026_holotube2026_shutdown'}); setTimeout(() => { window._globalHass.callService('switch','turn_off',{entity_id:'switch.holobox_screen_socket_1'}); }, 60000);`;
+                                const restartAction = `window._globalHass.callService('button','press',{entity_id:'button.holotube2026_holotube2026_restart'});`;
+                                
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            entity: input_boolean.ort_table_expander
+                            tap_action:
+                              action: perform-action
+                              perform_action: input_boolean.turn_on
+                              target:
+                                entity_id: input_boolean.ort_table_expander
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                                - cursor: pointer
+                            name: |
+                              [[[
+                                const s = states['binary_sensor.ort_table'];
+                                let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                                if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                                else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px; cursor:pointer;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(167,139,250,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:monitor-screenshot" style="width:24px; color:#a78bfa;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">ORT Table</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                    <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['binary_sensor.ort_table'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? action : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = `window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_ort'});`;
+                                const shutOffAction = `window._globalHass.callService('button','press',{entity_id:'button.ORT_shutdown'});`;
+                                const restartAction = `window._globalHass.callService('button','press',{entity_id:'button.ORT_restart'});`;
+                                
+                                const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                                const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                                const powerColor  = online ? '#f87171' : '#4ade80';
+                                const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                                const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                                const powerAction = online ? shutOffAction : turnOnAction;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                                    ${btn('Restart', 'mdi:restart', '#fbbf24', 'rgba(251,191,36,0.12)', 'rgba(251,191,36,0.26)', online, restartAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                            name: |
+                              [[[
+                                const s = states['switch.oled_screen_socket_1'];
+                                let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                                if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Powered</span>';
+                                else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(236,72,153,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:television" style="width:24px; color:#ec4899;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">MYVRS</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                            name: |
+                              [[[
+                                window._globalHass = hass;
+                                const s = states['switch.oled_screen_socket_1'];
+                                const online = s && s.state === 'on';
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); ${enabled ? `window._globalHass.callService('switch', '${action}', {entity_id:'switch.oled_screen_socket_1'});` : ''}"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500;cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';this.style.filter='brightness(1.2)'" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='';this.style.filter=''" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='';this.style.filter=''" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px;"></ha-icon>
+                                    <div style="white-space:nowrap;">${label}</div>
+                                  </div>`;
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn('Turn ON', 'mdi:power', '#4ade80', 'rgba(74,222,128,0.13)', 'rgba(74,222,128,0.28)', !online, 'turn_on')}
+                                    ${btn('Turn OFF', 'mdi:power-sleep', '#f87171', 'rgba(248,113,113,0.12)', 'rgba(248,113,113,0.26)', online, 'turn_off')}
+                                  </div>`;
+                              ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.grft_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.grft_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.grft_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - switch.grafiti_wall_master_power
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_grft = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.grft_expander'});
+
+                        const s = states['switch.grafiti_wall_master_power'];
+                        let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                        if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                        else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                        const online = s && s.state === 'on';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haGrft_on = () => { 
+                          window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_pc_msi'}); 
+                          window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_grft_projector_2026'});
+                        };
+                        window._haGrft_off = () => { 
+                          window._globalHass.callService('button','press',{entity_id:'button.grafiti_wall_grafiti_2026_shutdown'}); 
+                          setTimeout(() => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_off_grft_2026_projector'}); }, 50000);
+                        };
+                        window._haGrft_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.grafiti_wall_grafiti_2026_restart'}); };
+                        
+                        window._haProj_on  = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_grft_projector_2026'}); };
+                        window._haProj_off = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_off_grft_2026_projector'}); };
+
+                        const turnOnAction  = `window._haGrft_on(); window._haClose_grft();`;
+                        const shutOffAction = `window._haGrft_off(); window._haClose_grft();`;
+                        const restartAction = `window._haGrft_restart(); window._haClose_grft();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(96,165,250,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:projector-screen" style="width:28px;color:#60a5fa;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">GRFT+</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MORE OPTIONS</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                              ${dBtn('Projector ON','mdi:video','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haProj_on()')}
+                              ${dBtn('Projector OFF','mdi:video-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haProj_off()')}
+                              ${dBtn('Dummy 3','mdi:wifi','#a78bfa','rgba(167,139,250,0.12)','rgba(167,139,250,0.26)')}
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Dummy 4','mdi:volume-high','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)')}
+                              ${dBtn('Dummy 5','mdi:keyboard','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)')}
+                              ${dBtn('Dummy 6','mdi:mouse','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.transparent_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.transparent_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.transparent_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - switch.transparent_screen_master_power
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_trans = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.transparent_expander'});
+
+                        const s = states['switch.transparent_screen_master_power'];
+                        let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                        if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                        else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                        const online = s && s.state === 'on';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haTrans_on = () => { 
+                          window._globalHass.callService('switch','turn_on',{entity_id:'switch.transparent_screen_master_power'});
+                          setTimeout(() => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_transparent_screen_2026'}); }, 1000);
+                        };
+                        window._haTrans_off = () => { 
+                          window._globalHass.callService('button','press',{entity_id:'button.transparent_screen_transparent_screen_shutdown'});
+                          setTimeout(() => { window._globalHass.callService('switch','turn_off',{entity_id:'switch.transparent_screen_master_power'}); }, 60000);
+                        };
+                        window._haTrans_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.transparent_screen_transparent_screen_restart'}); };
+
+                        window._haTransPC_on = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_transparent_screen_2026'}); };
+                        window._haTransPC_off = () => { window._globalHass.callService('button','press',{entity_id:'button.transparent_screen_transparent_screen_shutdown'}); };
+                        window._haTransSock_on = () => { window._globalHass.callService('switch','turn_on',{entity_id:'switch.transparent_screen_master_power'}); };
+                        window._haTransSock_off = () => { window._globalHass.callService('switch','turn_off',{entity_id:'switch.transparent_screen_master_power'}); };
+
+                        const turnOnAction  = `window._haTrans_on(); window._haClose_trans();`;
+                        const shutOffAction = `window._haTrans_off(); window._haClose_trans();`;
+                        const restartAction = `window._haTrans_restart(); window._haClose_trans();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(74,222,128,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:square-opacity" style="width:28px;color:#4ade80;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">Transparent Screen</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">COMPONENT CONTROL</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haTransPC_on()')}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haTransPC_off()')}
+                              ${dBtn('Network','mdi:lan-connect','#a78bfa','rgba(167,139,250,0.12)','rgba(167,139,250,0.26)')}
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Socket ON','mdi:power-plug','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haTransSock_on()')}
+                              ${dBtn('Socket OFF','mdi:power-plug-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haTransSock_off()')}
+                              ${dBtn('Metrics','mdi:monitor-dashboard','#60a5fa','rgba(96,165,250,0.12)','rgba(96,165,250,0.26)')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.looking_glass_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.looking_glass_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.looking_glass_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - binary_sensor.looking_glass_ping
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_lg = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.looking_glass_expander'});
+
+                        const s = states['binary_sensor.looking_glass_ping'];
+                        const online = s && s.state === 'on';
+                        const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : '<span style="color:#f87171">● Offline</span>';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haLG_on = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_looking_glass_2026'}); };
+                        window._haLG_off = () => { window._globalHass.callService('button','press',{entity_id:'button.looking_glass_looking_glass_shutdown'}); };
+                        window._haLG_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.looking_glass_looking_glass_restart'}); };
+
+                        const turnOnAction  = `window._haLG_on(); window._haClose_lg();`;
+                        const shutOffAction = `window._haLG_off(); window._haClose_lg();`;
+                        const restartAction = `window._haLG_restart(); window._haClose_lg();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(168,85,247,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:mirror-rectangle" style="width:28px;color:#a855f7;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">Looking Glass 65'</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haLG_on()')}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haLG_off()')}
+                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', 'window._haLG_restart()')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.brelyon_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.brelyon_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.brelyon_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - binary_sensor.192_168_10_60
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_brel = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.brelyon_expander'});
+
+                        const s = states['binary_sensor.192_168_10_60'];
+                        let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                        if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                        else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                        const online = s && s.state === 'on';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haBrel_on = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_pc_brelyon'}); };
+                        window._haBrel_off = () => { window._globalHass.callService('button','press',{entity_id:'button.desktop_brelyon_desktop_brelyon_shutdown'}); };
+                        window._haBrel_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.desktop_brelyon_desktop_brelyon_restart'}); };
+
+                        const turnOnAction  = `window._haBrel_on(); window._haClose_brel();`;
+                        const shutOffAction = `window._haBrel_off(); window._haClose_brel();`;
+                        const restartAction = `window._haBrel_restart(); window._haClose_brel();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(45,212,191,0.15);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:monitor-shimmer" style="width:28px;color:#2dd4bf;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">Brelyon</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haBrel_on()')}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haBrel_off()')}
+                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', 'window._haBrel_restart()')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.holotube_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.holotube_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.holotube_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - binary_sensor.192_168_10_62
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_holo = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.holotube_expander'});
+
+                        const s = states['binary_sensor.192_168_10_62'];
+                        let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                        if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                        else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                        const online = s && s.state === 'on';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haHoloPC_on = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_holotube'}); };
+                        window._haHoloPC_off = () => { window._globalHass.callService('button','press',{entity_id:'button.holotube2026_holotube2026_shutdown'}); };
+                        window._haHoloPC_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.holotube2026_holotube2026_restart'}); };
+                        window._haHoloSock_on = () => { window._globalHass.callService('switch','turn_on',{entity_id:'switch.holobox_screen_socket_1'}); };
+                        window._haHoloSock_off = () => { window._globalHass.callService('switch','turn_off',{entity_id:'switch.holobox_screen_socket_1'}); };
+
+                        window._haHolo_on = () => { window._haHoloSock_on(); setTimeout(() => { window._haHoloPC_on(); }, 1000); };
+                        window._haHolo_off = () => { window._haHoloPC_off(); setTimeout(() => { window._haHoloSock_off(); }, 60000); };
+
+                        const turnOnAction  = `window._haHolo_on(); window._haClose_holo();`;
+                        const shutOffAction = `window._haHolo_off(); window._haClose_holo();`;
+                        const restartAction = `window._haHoloPC_restart(); window._haClose_holo();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(167,139,250,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:cylinder" style="width:28px;color:#a78bfa;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">HoloTube</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">COMPONENT CONTROL</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haHoloPC_on()')}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haHoloPC_off()')}
+                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', 'window._haHoloPC_restart()')}
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Socket ON','mdi:power-plug','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haHoloSock_on()')}
+                              ${dBtn('Socket OFF','mdi:power-plug-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haHoloSock_off()')}
+                              ${dBtn('Network','mdi:lan-connect','#60a5fa','rgba(96,165,250,0.12)','rgba(96,165,250,0.26)')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.ort_table_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    show_name: false
+                    show_icon: false
+                    tap_action:
+                      action: perform-action
+                      perform_action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.ort_table_expander
+                    styles:
+                      card:
+                        - position: fixed
+                        - inset: 0
+                        - z-index: 9998
+                        - border-radius: 0
+                        - border: none
+                        - box-shadow: none
+                        - padding: 0
+                        - background: rgba(5,10,25,0.6)
+                        - backdrop-filter: blur(18px) saturate(160%)
+                - type: conditional
+                  conditions:
+                    - entity: input_boolean.ort_table_expander
+                      state: 'on'
+                  card:
+                    type: custom:button-card
+                    triggers_update:
+                      - binary_sensor.ort_table
+                    show_name: true
+                    show_icon: false
+                    tap_action:
+                      action: none
+                    styles:
+                      card:
+                        - position: fixed
+                        - top: 50%
+                        - left: 50%
+                        - transform: translate(-50%, -50%)
+                        - z-index: 9999
+                        - border-radius: 28px
+                        - border: 1px solid rgba(255,255,255,0.13)
+                        - box-shadow: 0 32px 80px rgba(0,0,0,0.6)
+                        - padding: 28px 24px 24px
+                        - width: min(480px, 90vw)
+                        - background: rgba(18,32,70,0.97)
+                        - backdrop-filter: none
+                      name:
+                        - width: 100%
+                        - padding: 0
+                        - margin: 0
+                    name: |
+                      [[[
+                        window._globalHass = hass;
+                        window._haClose_ort = () => window._globalHass.callService('input_boolean', 'turn_off', {entity_id: 'input_boolean.ort_table_expander'});
+
+                        const s = states['binary_sensor.ort_table'];
+                        let statusHtml = '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
+                        if (s && s.state === 'on') statusHtml = '<span style="color:#4ade80">● Online</span>';
+                        else if (s && s.state === 'off') statusHtml = '<span style="color:#f87171">● Offline</span>';
+
+                        const online = s && s.state === 'on';
+
+                        const btn = (label, icon, color, bg, border, enabled, action) => `
+                          <div onclick="event.stopPropagation(); ${enabled ? action : 'void(0)'}"
+                            ontouchend="event.preventDefault(); event.stopPropagation(); ${enabled ? action : ''}"
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                            background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                            color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                            font-size:12px;font-weight:500;
+                            cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        const dBtn = (label, icon, color, bg, border, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px;
+                            border:1px solid ${border};background:${bg};color:${color};
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;">
+                            <ha-icon icon="${icon}" style="width:22px;height:22px;"></ha-icon>
+                            <div>${label}</div>
+                          </div>`;
+
+                        window._haOrt_on = () => { window._globalHass.callService('script','turn_on',{entity_id:'script.turn_on_ort'}); };
+                        window._haOrt_off = () => { window._globalHass.callService('button','press',{entity_id:'button.ORT_shutdown'}); };
+                        window._haOrt_restart = () => { window._globalHass.callService('button','press',{entity_id:'button.ORT_restart'}); };
+
+                        const turnOnAction  = `window._haOrt_on(); window._haClose_ort();`;
+                        const shutOffAction = `window._haOrt_off(); window._haClose_ort();`;
+                        const restartAction = `window._haOrt_restart(); window._haClose_ort();`;
+
+                        const powerLabel  = online ? 'Shut Off' : 'Turn ON';
+                        const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
+                        const powerColor  = online ? '#f87171' : '#4ade80';
+                        const powerBg     = online ? 'rgba(248,113,113,0.12)' : 'rgba(74,222,128,0.13)';
+                        const powerBorder = online ? 'rgba(248,113,113,0.26)' : 'rgba(74,222,128,0.28)';
+                        const powerAction = online ? shutOffAction : turnOnAction;
+
+                        return `
+                          <div>
+                            <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px;">
+                              <div style="width:52px;height:52px;border-radius:14px;background:rgba(167,139,250,0.18);
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <ha-icon icon="mdi:monitor-screenshot" style="width:28px;color:#a78bfa;"></ha-icon>
+                              </div>
+                              <div style="flex:1;">
+                                <div style="font-size:20px;font-weight:600;color:#ffffff;">ORT Table</div>
+                                <div style="font-size:13px;margin-top:3px;">${statusHtml}</div>
+                              </div>
+                            </div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${btn(powerLabel, powerIcon, powerColor, powerBg, powerBorder, true, powerAction)}
+                              ${btn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', online, restartAction)}
+                            </div>
+
+                            <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
+                            <div style="display:flex;gap:8px;">
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', 'window._haOrt_on()')}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', 'window._haOrt_off()')}
+                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', 'window._haOrt_restart()')}
+                            </div>
+                          </div>
+                        `;
+                      ]]]
