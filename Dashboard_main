@@ -338,6 +338,39 @@ views:
               perform_action: script.restart_ora_mac
               target: {}
             color: orange
+      - type: grid
+        cards:
+          - type: heading
+            heading: Dome 4.5m
+            heading_style: title
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.master_power_dome
+            name: Master Power
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: mdi:power
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.dome_fans_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
+          - show_name: true
+            show_icon: true
+            type: button
+            entity: switch.blueai_screen_socket_1
+            show_state: true
+            grid_options:
+              columns: 6
+              rows: 2
+            icon: ''
     header:
       card:
         type: markdown
