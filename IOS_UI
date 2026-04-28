@@ -48,6 +48,12 @@ button_card_templates:
           triggers_update: all
           show_name: true
           show_icon: false
+          entity: '[[[ return variables.expander_entity; ]]]'
+          tap_action:
+            action: call-service
+            service: input_boolean.turn_on
+            service_data:
+              entity_id: '[[[ return variables.expander_entity; ]]]'
           styles:
             card:
               - background: transparent
@@ -77,6 +83,7 @@ button_card_templates:
                     <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">${variables.pc_name}</div>
                     <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px; line-height:1.2;">${statusHtml}</div>
                   </div>
+                  <ha-icon icon="mdi:chevron-right" style="width:16px; color:rgba(232,237,248,0.3);"></ha-icon>
                 </div>
               `;
             ]]]
@@ -539,7 +546,7 @@ views:
                                 - cursor: pointer
                             name: |
                               [[[
-                                const s = states['binary_sensor.looking_glass_ping'];
+                                const s = states['binary_sensor.192_168_10_63'];
                                 const state = s?.state?.toLowerCase?.() ?? '';
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
@@ -577,7 +584,7 @@ views:
                                 - pointer-events: auto
                             name: |
                               [[[
-                                const s = states['binary_sensor.looking_glass_ping'];
+                                const s = states['binary_sensor.192_168_10_63'];
                                 const state = s?.state?.toLowerCase?.() ?? '';
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 
@@ -628,6 +635,7 @@ views:
                         pc_icon: mdi:monitor-shimmer
                         theme_color: '#2dd4bf'
                         icon_bg: rgba(45,212,191,0.15)
+                        expander_entity: input_boolean.brelyon_expander
                         ping_entity: binary_sensor.192_168_10_60
                         turn_on_script: script.turn_on_pc_brelyon
                         turn_off_btn: button.desktop_brelyon_desktop_brelyon_shutdown
@@ -639,6 +647,7 @@ views:
                         pc_icon: mdi:cylinder
                         theme_color: '#a78bfa'
                         icon_bg: rgba(167,139,250,0.18)
+                        expander_entity: input_boolean.holotube_expander
                         ping_entity: binary_sensor.192_168_10_62
                         turn_on_script: script.turn_on_holotube
                         turn_off_btn: button.holotube2026_holotube2026_shutdown
@@ -650,7 +659,8 @@ views:
                         pc_icon: mdi:monitor-screenshot
                         theme_color: '#a78bfa'
                         icon_bg: rgba(167,139,250,0.18)
-                        ping_entity: binary_sensor.ort_table
+                        expander_entity: input_boolean.ort_table_expander
+                        ping_entity: binary_sensor.192_168_10_64
                         turn_on_script: script.turn_on_ort
                         turn_off_btn: button.ORT_shutdown
                         restart_btn: button.ORT_restart
@@ -1162,7 +1172,7 @@ views:
                   card:
                     type: custom:button-card
                     triggers_update:
-                      - binary_sensor.looking_glass_ping
+                      - binary_sensor.192_168_10_63
                     show_name: true
                     show_icon: false
                     tap_action:
@@ -1189,7 +1199,7 @@ views:
                     name: |
                       [[[
                         // CHECK THIS ENTITY ID IF IT STILL SHOWS UNKNOWN!
-                        const s = states['binary_sensor.looking_glass_ping']; 
+                        const s = states['binary_sensor.192_168_10_63']; 
                         const state = s?.state?.toLowerCase?.() ?? '';
                         const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                         const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
@@ -1573,7 +1583,7 @@ views:
                   card:
                     type: custom:button-card
                     triggers_update:
-                      - binary_sensor.ort_table
+                      - binary_sensor.192_168_10_64
                     show_name: true
                     show_icon: false
                     tap_action:
@@ -1599,7 +1609,7 @@ views:
                         - pointer-events: auto
                     name: |
                       [[[
-                        const s = states['binary_sensor.ort_table'];
+                        const s = states['binary_sensor.192_168_10_64'];
                         const state = s?.state?.toLowerCase?.() ?? '';
                         const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                         const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
