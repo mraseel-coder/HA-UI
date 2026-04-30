@@ -362,9 +362,11 @@ views:
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 
                                 const call = (domain, service, entity) => `
-                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  })();
                                 `.replace(/\n/g, ' ');
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -932,9 +934,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1072,9 +1076,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1206,9 +1212,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1341,9 +1349,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1476,9 +1486,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1616,9 +1628,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1753,9 +1767,11 @@ views:
                         const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">● Unknown</span>';
 
                         const call = (domain, service, entity) => `
-                          let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                          if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                          else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                          })();
                         `.replace(/\n/g, ' ');
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
