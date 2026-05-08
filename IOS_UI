@@ -224,8 +224,42 @@ views:
                         - type: custom:button-card
                           color_type: blank-card
                         - type: custom:button-card
-                          name: POWER ON ALL
-                          icon: mdi:power-plug
+                          show_name: true
+                          show_icon: false
+                          name: |
+                            [[[
+                              const call = (domain, service, entity) => `
+                                (() => {
+                                  const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                })();
+                              `.replace(/\n/g, ' ');
+
+                              const action = [
+                                call('script','turn_on','script.turn_on_pc_msi'),
+                                call('script','turn_on','script.turn_on_grft_projector_2026'),
+                                call('switch','turn_on','switch.transparent_screen_master_power'),
+                                `setTimeout(() => { ${call('script','turn_on','script.turn_on_transparent_screen_2026')} }, 1000);`,
+                                call('script','turn_on','script.turn_on_looking_glass_2026'),
+                                call('script','turn_on','script.turn_on_pc_brelyon'),
+                                call('switch','turn_on','switch.holobox_screen_socket_1'),
+                                `setTimeout(() => { ${call('script','turn_on','script.turn_on_holotube')} }, 1000);`,
+                                call('script','turn_on','script.turn_on_touchtable'),
+                                call('switch','turn_on','switch.oled_screen_socket_1'),
+                                call('switch','turn_on','switch.master_power_dome'),
+                                call('switch','turn_on','switch.smart_plug_7_socket_1'),
+                                call('switch','turn_on','switch.smart_plug_6_socket_1')
+                              ].join(' ');
+
+                              return `
+                                <div onclick="event.stopPropagation(); ${action}" ontouchend="event.stopPropagation(); ${action}"
+                                  style="display:flex; align-items:center; justify-content:center; gap:10px; pointer-events:auto;">
+                                  <ha-icon icon="mdi:power-plug" style="width:22px; color:#4ade80; filter:drop-shadow(0 0 6px rgba(74,222,128,0.4));"></ha-icon>
+                                  <div style="color:#fff; font-size:12.5px; font-weight:600; letter-spacing:0.1em;">POWER ON ALL</div>
+                                </div>
+                              `;
+                            ]]]
                           styles:
                             card:
                               - background: >-
@@ -242,16 +276,46 @@ views:
                               - font-size: 12.5px
                               - font-weight: 600
                               - letter-spacing: 0.1em
-                            icon:
-                              - color: '#4ade80'
-                              - width: 22px
-                              - filter: drop-shadow(0 0 6px rgba(74,222,128,0.4))
+                              - pointer-events: auto
                           tap_action:
-                            action: call-service
-                            service: script.turn_on_all_exhibits
+                            action: none
                         - type: custom:button-card
-                          name: POWER OFF ALL
-                          icon: mdi:power-plug-off
+                          show_name: true
+                          show_icon: false
+                          name: |
+                            [[[
+                              const call = (domain, service, entity) => `
+                                (() => {
+                                  const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); }
+                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                })();
+                              `.replace(/\n/g, ' ');
+
+                              const action = [
+                                call('button','press','button.grafiti_wall_grafiti_2026_shutdown'),
+                                `setTimeout(() => { ${call('script','turn_on','script.turn_off_grft_2026_projector')} }, 50000);`,
+                                call('button','press','button.transparent_screen_transparent_screen_shutdown'),
+                                `setTimeout(() => { ${call('switch','turn_off','switch.transparent_screen_master_power')} }, 60000);`,
+                                call('button','press','button.looking_glass_looking_glass_shutdown'),
+                                call('button','press','button.desktop_brelyon_desktop_brelyon_shutdown'),
+                                call('button','press','button.holotube2026_holotube2026_shutdown'),
+                                `setTimeout(() => { ${call('switch','turn_off','switch.holobox_screen_socket_1')} }, 60000);`,
+                                call('button','press','button.touch_table_touch_table_2026_shutdown'),
+                                call('switch','turn_off','switch.oled_screen_socket_1'),
+                                call('switch','turn_off','switch.master_power_dome'),
+                                call('switch','turn_off','switch.smart_plug_7_socket_1'),
+                                call('switch','turn_off','switch.smart_plug_6_socket_1')
+                              ].join(' ');
+
+                              return `
+                                <div onclick="event.stopPropagation(); ${action}" ontouchend="event.stopPropagation(); ${action}"
+                                  style="display:flex; align-items:center; justify-content:center; gap:10px; pointer-events:auto;">
+                                  <ha-icon icon="mdi:power-plug-off" style="width:22px; color:#f87171; filter:drop-shadow(0 0 6px rgba(248,113,113,0.4));"></ha-icon>
+                                  <div style="color:#fff; font-size:12.5px; font-weight:600; letter-spacing:0.1em;">POWER OFF ALL</div>
+                                </div>
+                              `;
+                            ]]]
                           styles:
                             card:
                               - background: >-
@@ -268,13 +332,9 @@ views:
                               - font-size: 12.5px
                               - font-weight: 600
                               - letter-spacing: 0.1em
-                            icon:
-                              - color: '#f87171'
-                              - width: 22px
-                              - filter: drop-shadow(0 0 6px rgba(248,113,113,0.4))
+                              - pointer-events: auto
                           tap_action:
-                            action: call-service
-                            service: script.turn_off_all_exhibits
+                            action: none
                         - type: custom:button-card
                           color_type: blank-card
                 - type: custom:button-card
@@ -663,9 +723,9 @@ views:
                         icon_bg: rgba(167,139,250,0.18)
                         expander_entity: input_boolean.ort_table_expander
                         ping_entity: binary_sensor.192_168_10_64
-                        turn_on_script: script.turn_on_ort
-                        turn_off_btn: button.ORT_shutdown
-                        restart_btn: button.ORT_restart
+                        turn_on_script: script.turn_on_touchtable
+                        turn_off_btn: button.touch_table_touch_table_2026_shutdown
+                        restart_btn: button.touch_table_touch_table_2026_restart
                     - type: custom:button-card
                       template: glass_card
                       show_name: false
@@ -757,6 +817,202 @@ views:
                                 
                                 const turnOnAction  = call('switch','turn_on','switch.oled_screen_socket_1');
                                 const shutOffAction = call('switch','turn_off','switch.oled_screen_socket_1');
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn('Turn ON', 'mdi:power', '#4ade80', 'rgba(74,222,128,0.13)', 'rgba(74,222,128,0.28)', !online, turnOnAction)}
+                                    ${btn('Turn OFF', 'mdi:power-sleep', '#f87171', 'rgba(248,113,113,0.12)', 'rgba(248,113,113,0.26)', online, shutOffAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                            name: |
+                              [[[
+                                const s = states['switch.smart_plug_6_socket_1'];
+                                const state = s?.state?.toLowerCase?.() ?? '';
+                                const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
+                                const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
+                                const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">Unknown</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(96,165,250,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:mirror-rectangle" style="width:24px; color:#60a5fa;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">Looking Glass 22&#39;</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                                - pointer-events: auto
+                            name: |
+                              [[[
+                                const s = states['switch.smart_plug_6_socket_1'];
+                                const state = s?.state?.toLowerCase?.() ?? '';
+                                const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
+                                
+                                const call = (domain, service, entity) => `
+                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                `.replace(/\n/g, ' ');
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
+                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500; transition: all 0.2s;
+                                    cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;pointer-events:auto;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='scale(1)';" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='scale(1)';" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px; pointer-events:none;"></ha-icon>
+                                    <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = call('switch','turn_on','switch.smart_plug_6_socket_1');
+                                const shutOffAction = call('switch','turn_off','switch.smart_plug_6_socket_1');
+                                
+                                return `
+                                  <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
+                                    ${btn('Turn ON', 'mdi:power', '#4ade80', 'rgba(74,222,128,0.13)', 'rgba(74,222,128,0.28)', !online, turnOnAction)}
+                                    ${btn('Turn OFF', 'mdi:power-sleep', '#f87171', 'rgba(248,113,113,0.12)', 'rgba(248,113,113,0.26)', online, shutOffAction)}
+                                  </div>`;
+                              ]]]
+                    - type: custom:button-card
+                      template: glass_card
+                      show_name: false
+                      show_icon: false
+                      triggers_update: all
+                      styles:
+                        grid:
+                          - grid-template-areas: '"header" "actions"'
+                          - grid-template-columns: 1fr
+                          - grid-template-rows: min-content min-content
+                      custom_fields:
+                        header:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                            name: |
+                              [[[
+                                const s = states['switch.smart_plug_7_socket_1'];
+                                const state = s?.state?.toLowerCase?.() ?? '';
+                                const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
+                                const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
+                                const statusHtml = online ? '<span style="color:#4ade80">● Online</span>' : offline ? '<span style="color:#f87171">● Offline</span>' : '<span style="color:rgba(255,255,255,0.35)">Unknown</span>';
+
+                                return `
+                                  <div style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                                    <div style="width:44px; height:44px; border-radius:12px; background:rgba(168,85,247,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                      <ha-icon icon="mdi:mirror-rectangle" style="width:24px; color:#a855f7;"></ha-icon>
+                                    </div>
+                                    <div style="text-align:left; display:flex; flex-direction:column; justify-content:center; flex:1;">
+                                      <div style="font-size:16px; font-weight:600; color:#ffffff; line-height:1.2;">Looking Glass 15&#39;</div>
+                                      <div style="font-size:12px; color:rgba(232,237,248,0.5); margin-top:2px;">${statusHtml}</div>
+                                    </div>
+                                  </div>
+                                `;
+                              ]]]
+                        actions:
+                          card:
+                            type: custom:button-card
+                            triggers_update: all
+                            show_name: true
+                            show_icon: false
+                            styles:
+                              card:
+                                - background: transparent
+                                - border: none
+                                - box-shadow: none
+                                - padding: 0
+                              name:
+                                - width: 100%
+                                - padding: 0
+                                - margin: 0
+                                - pointer-events: auto
+                            name: |
+                              [[[
+                                const s = states['switch.smart_plug_7_socket_1'];
+                                const state = s?.state?.toLowerCase?.() ?? '';
+                                const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
+                                
+                                const call = (domain, service, entity) => `
+                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                `.replace(/\n/g, ' ');
+                                
+                                const btn = (label, icon, color, bg, border, enabled, action) => `
+                                  <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
+                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
+                                    style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                                    padding:10px 4px;border-radius:14px;
+                                    border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
+                                    background:${enabled ? bg : 'rgba(255,255,255,0.02)'};
+                                    color:${enabled ? color : 'rgba(255,255,255,0.2)'};
+                                    font-size:11.5px;font-weight:500; transition: all 0.2s;
+                                    cursor:${enabled ? 'pointer' : 'not-allowed'};box-sizing:border-box;pointer-events:auto;"
+                                    onmousedown="${enabled ? "this.style.transform='scale(0.95)';" : ''}"
+                                    onmouseup="${enabled ? "this.style.transform='scale(1)';" : ''}"
+                                    onmouseleave="${enabled ? "this.style.transform='scale(1)';" : ''}">
+                                    <ha-icon icon="${icon}" style="width:20px;height:20px; pointer-events:none;"></ha-icon>
+                                    <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
+                                  </div>`;
+                                
+                                const turnOnAction  = call('switch','turn_on','switch.smart_plug_7_socket_1');
+                                const shutOffAction = call('switch','turn_off','switch.smart_plug_7_socket_1');
                                 
                                 return `
                                   <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
@@ -1660,9 +1916,9 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('script','turn_on','script.turn_on_ort') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
-                        const shutOffAction = call('button','press','button.ORT_shutdown') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
-                        const restartAction = call('button','press','button.ORT_restart') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
+                        const turnOnAction  = call('script','turn_on','script.turn_on_touchtable') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
+                        const shutOffAction = call('button','press','button.touch_table_touch_table_2026_shutdown') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
+                        const restartAction = call('button','press','button.touch_table_touch_table_2026_restart') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
 
                         const powerLabel  = online ? 'Shut Off' : 'Turn ON';
                         const powerIcon   = online ? 'mdi:power-sleep' : 'mdi:power';
@@ -1694,9 +1950,9 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
                             <div style="display:flex;gap:8px;">
-                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_ort'))}
-                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('button','press','button.ORT_shutdown'))}
-                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', call('button','press','button.ORT_restart'))}
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_touchtable'))}
+                              ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('button','press','button.touch_table_touch_table_2026_shutdown'))}
+                              ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', call('button','press','button.touch_table_touch_table_2026_restart'))}
                             </div>
                           </div>
                         `;
