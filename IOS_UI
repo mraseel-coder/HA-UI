@@ -135,8 +135,14 @@ button_card_templates:
                 </div>
               `;
 
-              const turnOnAction  = call('script','turn_on', variables.turn_on_script);
-              const shutOffAction = call('button','press', variables.turn_off_btn);
+              const turnOnAction = variables.socket_entity 
+                ? call('switch','turn_on', variables.socket_entity) + ` setTimeout(() => { ${call('script','turn_on', variables.turn_on_script)} }, 1000);`
+                : call('script','turn_on', variables.turn_on_script);
+                
+              const shutOffAction = variables.socket_entity
+                ? call('button','press', variables.turn_off_btn) + ` setTimeout(() => { ${call('switch','turn_off', variables.socket_entity)} }, 60000);`
+                : call('button','press', variables.turn_off_btn);
+
               const restartAction = call('button','press', variables.restart_btn);
 
               const powerLabel  = online ? 'Shut Off' : 'Turn ON';
@@ -714,6 +720,7 @@ views:
                         turn_on_script: script.turn_on_holotube
                         turn_off_btn: button.holotube2026_holotube2026_shutdown
                         restart_btn: button.holotube2026_holotube2026_restart
+                        socket_entity: switch.holobox_screen_socket_1
                     - type: custom:button-card
                       template: pc_card
                       variables:
@@ -1052,7 +1059,7 @@ views:
                                 - cursor: pointer
                             name: |
                               [[[
-                                const s = states['switch.master_power_dome'];
+                                const s = states['binary_sensor.dome_projectors_online'] || states['binary_sensor.dome_bridge_online'] || states['sensor.dome_bridge_status'] || states['switch.master_power_dome'];
                                 const state = s?.state?.toLowerCase?.() ?? '';
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
@@ -1090,14 +1097,24 @@ views:
                                 - pointer-events: auto
                             name: |
                               [[[
-                                const s = states['switch.master_power_dome'];
+                                const s = states['binary_sensor.dome_projectors_online'] || states['binary_sensor.dome_bridge_online'] || states['sensor.dome_bridge_status'] || states['switch.master_power_dome'];
                                 const state = s?.state?.toLowerCase?.() ?? '';
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 
                                 const call = (domain, service, entity) => `
-                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  })();
+                                `.replace(/\n/g, ' ');
+
+                                const rest = (service) => `
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('rest_command', '${service}', {}); }
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'rest_command.${service}', service_data: {} } } } })); }
+                                  })();
                                 `.replace(/\n/g, ' ');
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
@@ -1117,8 +1134,9 @@ views:
                                     <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
                                   </div>`;
                                 
-                                const turnOnAction  = call('switch','turn_on','switch.master_power_dome');
-                                const shutOffAction = call('switch','turn_off','switch.master_power_dome');
+                                const startContentAction = rest('dome_play') + ` setTimeout(() => { ${rest('next_content')} }, 1000);`;
+                                const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('projectors_on') + ` setTimeout(() => { ${startContentAction} }, 30000);`;
+                                const shutOffAction = rest('server_shutdown') + ` setTimeout(() => { ${rest('projectors_off')} ${call('switch','turn_off','switch.dome_fans_socket_1')} ${call('switch','turn_off','switch.blueai_screen_socket_1')} }, 20000);`;
 
                                 return `
                                   <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
@@ -1989,6 +2007,9 @@ views:
                     type: custom:button-card
                     triggers_update:
                       - switch.master_power_dome
+                      - binary_sensor.dome_projectors_online
+                      - binary_sensor.dome_bridge_online
+                      - sensor.dome_bridge_status
                       - switch.dome_fans_socket_1
                       - switch.blueai_screen_socket_1
                     show_name: true
@@ -2016,7 +2037,7 @@ views:
                         - pointer-events: auto
                     name: |
                       [[[
-                        const s = states['switch.master_power_dome'];
+                        const s = states['binary_sensor.dome_projectors_online'] || states['binary_sensor.dome_bridge_online'] || states['sensor.dome_bridge_status'] || states['switch.master_power_dome'];
                         const state = s?.state?.toLowerCase?.() ?? '';
                         const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                         const offline = ['off', 'offline', 'disconnected', 'not_home'].includes(state);
@@ -2055,8 +2076,43 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('switch','turn_on','switch.master_power_dome') + call('input_boolean','turn_off','input_boolean.dome_expander');
-                        const shutOffAction = call('switch','turn_off','switch.master_power_dome') + call('input_boolean','turn_off','input_boolean.dome_expander');
+                        const mBtn = (label, action='') => `
+                          <div onclick="event.stopPropagation(); ${action}"
+                            ontouchend="event.stopPropagation(); ${action}" 
+                            style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+                            padding:12px 4px;border-radius:14px; transition: all 0.2s;
+                            border:1px solid rgba(192,132,252,0.28);background:rgba(192,132,252,0.13);color:#c084fc;
+                            font-size:12px;font-weight:500;cursor:pointer;box-sizing:border-box;pointer-events:auto;">
+                            <ha-icon icon="mdi:volume-off" style="width:22px;height:22px; pointer-events:none;"></ha-icon>
+                            <div class="lbl" style="pointer-events:none;">${label}</div>
+                          </div>`;
+
+                        const rest = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('rest_command', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'rest_command.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
+                        const muteToggleAction = `
+                          (() => {
+                            const key = 'dome_muted';
+                            const muted = localStorage.getItem(key) === '1';
+                            const service = muted ? 'unmute' : 'mute';
+                            localStorage.setItem(key, muted ? '0' : '1');
+                            const label = this.querySelector('.lbl');
+                            if(label) label.innerText = muted ? 'Unmuted' : 'Muted';
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('rest_command', service, {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'rest_command.' + service, service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
+                        const startContentAction = rest('dome_play') + ` setTimeout(() => { ${rest('next_content')} }, 1000);`;
+                        const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('projectors_on') + ` setTimeout(() => { ${startContentAction} }, 30000);` + call('input_boolean','turn_off','input_boolean.dome_expander');
+                        const shutOffAction = rest('server_shutdown') + ` setTimeout(() => { ${rest('projectors_off')} ${call('switch','turn_off','switch.dome_fans_socket_1')} ${call('switch','turn_off','switch.blueai_screen_socket_1')} }, 20000);` + call('input_boolean','turn_off','input_boolean.dome_expander');
+                        const muteLabel = localStorage.getItem('dome_muted') === '1' ? 'Muted' : 'Unmuted';
 
                         return `
                           <div>
@@ -2073,11 +2129,31 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MASTER POWER</div>
                             <div style="display:flex;gap:8px;margin-bottom:16px;">
-                              ${btn('Turn ON', 'mdi:power', '#4ade80', 'rgba(74,222,128,0.13)', 'rgba(74,222,128,0.28)', !online, turnOnAction)}
+                              ${btn('Turn ON + Play', 'mdi:power', '#4ade80', 'rgba(74,222,128,0.13)', 'rgba(74,222,128,0.28)', !online, turnOnAction)}
                               ${btn('Turn OFF', 'mdi:power-sleep', '#f87171', 'rgba(248,113,113,0.12)', 'rgba(248,113,113,0.26)', online, shutOffAction)}
                             </div>
 
                             <div style="border-top:1px solid rgba(255,255,255,0.08);margin-bottom:16px;"></div>
+
+                            <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">DOME BRIDGE</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                              ${dBtn('Projectors ON','mdi:projector','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', rest('projectors_on'))}
+                              ${dBtn('Projectors OFF','mdi:projector-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', rest('projectors_off'))}
+                            </div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${dBtn('Start','mdi:play','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', startContentAction)}
+                              ${dBtn('Pause','mdi:pause','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', rest('dome_pause'))}
+                              ${dBtn('Stop','mdi:stop','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', rest('dome_stop'))}
+                            </div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                              ${dBtn('Shutdown','mdi:power-plug-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', rest('server_shutdown'))}
+                              ${dBtn('Restart','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', rest('server_restart'))}
+                            </div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;">
+                              ${dBtn('Previous','mdi:skip-previous','#60a5fa','rgba(96,165,250,0.13)','rgba(96,165,250,0.28)', rest('previous_content'))}
+                              ${mBtn(muteLabel, muteToggleAction)}
+                              ${dBtn('Next','mdi:skip-next','#60a5fa','rgba(96,165,250,0.13)','rgba(96,165,250,0.28)', rest('next_content'))}
+                            </div>
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">COMPONENT CONTROL</div>
                             <div style="display:flex;gap:8px;margin-bottom:8px;">
