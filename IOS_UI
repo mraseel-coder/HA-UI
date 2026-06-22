@@ -1134,9 +1134,8 @@ views:
                                     <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
                                   </div>`;
                                 
-                                const startContentAction = rest('dome_play') + ` setTimeout(() => { ${rest('next_content')} }, 1000);`;
-                                const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('projectors_on') + ` setTimeout(() => { ${startContentAction} }, 30000);`;
-                                const shutOffAction = rest('server_shutdown') + ` setTimeout(() => { ${rest('projectors_off')} ${call('switch','turn_off','switch.dome_fans_socket_1')} ${call('switch','turn_off','switch.blueai_screen_socket_1')} }, 20000);`;
+                                const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('dome_start_first_content');
+                                const shutOffAction = call('script','turn_on','script.dome_shutdown');
 
                                 return `
                                   <div style="display:flex;gap:8px;width:100%;box-sizing:border-box;">
@@ -2109,9 +2108,8 @@ views:
                           })();
                         `.replace(/\n/g, ' ');
 
-                        const startContentAction = rest('dome_play') + ` setTimeout(() => { ${rest('next_content')} }, 1000);`;
-                        const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('projectors_on') + ` setTimeout(() => { ${startContentAction} }, 30000);` + call('input_boolean','turn_off','input_boolean.dome_expander');
-                        const shutOffAction = rest('server_shutdown') + ` setTimeout(() => { ${rest('projectors_off')} ${call('switch','turn_off','switch.dome_fans_socket_1')} ${call('switch','turn_off','switch.blueai_screen_socket_1')} }, 20000);` + call('input_boolean','turn_off','input_boolean.dome_expander');
+                        const turnOnAction  = call('switch','turn_on','switch.dome_fans_socket_1') + call('switch','turn_on','switch.blueai_screen_socket_1') + rest('dome_start_first_content') + call('input_boolean','turn_off','input_boolean.dome_expander');
+                        const shutOffAction = call('script','turn_on','script.dome_shutdown') + call('input_boolean','turn_off','input_boolean.dome_expander');
                         const muteLabel = localStorage.getItem('dome_muted') === '1' ? 'Muted' : 'Unmuted';
 
                         return `
@@ -2141,7 +2139,7 @@ views:
                               ${dBtn('Projectors OFF','mdi:projector-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', rest('projectors_off'))}
                             </div>
                             <div style="display:flex;gap:8px;margin-bottom:16px;">
-                              ${dBtn('Start','mdi:play','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', startContentAction)}
+                              ${dBtn('Start','mdi:play','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', rest('dome_play'))}
                               ${dBtn('Pause','mdi:pause','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', rest('dome_pause'))}
                               ${dBtn('Stop','mdi:stop','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', rest('dome_stop'))}
                             </div>
