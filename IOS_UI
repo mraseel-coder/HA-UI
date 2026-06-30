@@ -112,14 +112,26 @@ button_card_templates:
               const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
               
               const call = (domain, service, entity) => `
-                let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                (() => {
+                  const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                })();
               `.replace(/\n/g, ' ');
+
+              const scriptCall = (entity) => {
+                const service = entity.replace('script.', '');
+                return `
+                  (() => {
+                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                    if(h) { h.callService('script', '${service}', {}); } 
+                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                  })();
+                `.replace(/\n/g, ' ');
+              };
 
               const btn = (label, icon, color, bg, border, enabled, action) => `
                 <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                  ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                   style="flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
                   padding:10px 4px; border-radius:14px;
                   border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -136,8 +148,8 @@ button_card_templates:
               `;
 
               const turnOnAction = variables.socket_entity 
-                ? call('switch','turn_on', variables.socket_entity) + ` setTimeout(() => { ${call('script','turn_on', variables.turn_on_script)} }, 1000);`
-                : call('script','turn_on', variables.turn_on_script);
+                ? call('switch','turn_on', variables.socket_entity) + ` setTimeout(() => { ${scriptCall(variables.turn_on_script)} }, 1000);`
+                : scriptCall(variables.turn_on_script);
                 
               const shutOffAction = variables.socket_entity
                 ? call('button','press', variables.turn_off_btn) + ` setTimeout(() => { ${call('switch','turn_off', variables.socket_entity)} }, 60000);`
@@ -242,24 +254,10 @@ views:
                                 })();
                               `.replace(/\n/g, ' ');
 
-                              const action = [
-                                call('script','turn_on','script.turn_on_pc_msi'),
-                                call('script','turn_on','script.turn_on_grft_projector_2026'),
-                                call('switch','turn_on','switch.transparent_screen_master_power'),
-                                `setTimeout(() => { ${call('script','turn_on','script.turn_on_transparent_screen_2026')} }, 1000);`,
-                                call('script','turn_on','script.turn_on_looking_glass_2026'),
-                                call('script','turn_on','script.turn_on_pc_brelyon'),
-                                call('switch','turn_on','switch.holobox_screen_socket_1'),
-                                `setTimeout(() => { ${call('script','turn_on','script.turn_on_holotube')} }, 1000);`,
-                                call('script','turn_on','script.turn_on_touchtable'),
-                                call('switch','turn_on','switch.oled_screen_socket_1'),
-                                call('switch','turn_on','switch.master_power_dome'),
-                                call('switch','turn_on','switch.smart_plug_7_socket_1'),
-                                call('switch','turn_on','switch.smart_plug_6_socket_1')
-                              ].join(' ');
+                              const action = call('script','turn_on','script.turn_on_all_exhibits') + call('switch','turn_on','switch.smart_plug_6_socket_1') + call('switch','turn_on','switch.smart_plug_7_socket_1');
 
                               return `
-                                <div onclick="event.stopPropagation(); ${action}" ontouchend="event.stopPropagation(); ${action}"
+                                <div onclick="event.stopPropagation(); ${action}"
                                   style="display:flex; align-items:center; justify-content:center; gap:10px; pointer-events:auto;">
                                   <ha-icon icon="mdi:power-plug" style="width:22px; color:#4ade80; filter:drop-shadow(0 0 6px rgba(74,222,128,0.4));"></ha-icon>
                                   <div style="color:#fff; font-size:12.5px; font-weight:600; letter-spacing:0.1em;">POWER ON ALL</div>
@@ -298,24 +296,10 @@ views:
                                 })();
                               `.replace(/\n/g, ' ');
 
-                              const action = [
-                                call('button','press','button.grafiti_wall_grafiti_2026_shutdown'),
-                                `setTimeout(() => { ${call('script','turn_on','script.turn_off_grft_2026_projector')} }, 50000);`,
-                                call('button','press','button.transparent_screen_transparent_screen_shutdown'),
-                                `setTimeout(() => { ${call('switch','turn_off','switch.transparent_screen_master_power')} }, 60000);`,
-                                call('button','press','button.looking_glass_looking_glass_shutdown'),
-                                call('button','press','button.desktop_brelyon_desktop_brelyon_shutdown'),
-                                call('button','press','button.holotube2026_holotube2026_shutdown'),
-                                `setTimeout(() => { ${call('switch','turn_off','switch.holobox_screen_socket_1')} }, 60000);`,
-                                call('button','press','button.touch_table_touch_table_2026_shutdown'),
-                                call('switch','turn_off','switch.oled_screen_socket_1'),
-                                call('switch','turn_off','switch.master_power_dome'),
-                                call('switch','turn_off','switch.smart_plug_7_socket_1'),
-                                call('switch','turn_off','switch.smart_plug_6_socket_1')
-                              ].join(' ');
+                              const action = call('script','turn_on','script.turn_off_all_exhibits') + call('switch','turn_off','switch.smart_plug_6_socket_1') + call('switch','turn_off','switch.smart_plug_7_socket_1');
 
                               return `
-                                <div onclick="event.stopPropagation(); ${action}" ontouchend="event.stopPropagation(); ${action}"
+                                <div onclick="event.stopPropagation(); ${action}"
                                   style="display:flex; align-items:center; justify-content:center; gap:10px; pointer-events:auto;">
                                   <ha-icon icon="mdi:power-plug-off" style="width:22px; color:#f87171; filter:drop-shadow(0 0 6px rgba(248,113,113,0.4));"></ha-icon>
                                   <div style="color:#fff; font-size:12.5px; font-weight:600; letter-spacing:0.1em;">POWER OFF ALL</div>
@@ -434,10 +418,17 @@ views:
                                     else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
                                   })();
                                 `.replace(/\n/g, ' ');
+
+                                const scriptCall = (service) => `
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('script', '${service}', {}); }
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                                  })();
+                                `.replace(/\n/g, ' ');
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -452,7 +443,7 @@ views:
                                     <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
                                   </div>`;
                                 
-                                const turnOnAction = call('script','turn_on','script.turn_on_pc_msi') + call('script','turn_on','script.turn_on_grft_projector_2026');
+                                const turnOnAction = scriptCall('turn_on_pc_msi') + scriptCall('turn_on_grft_projector_2026');
                                 const shutOffAction = call('button','press','button.grafiti_wall_grafiti_2026_shutdown') + `setTimeout(() => { ${call('script','turn_on','script.turn_off_grft_2026_projector')} }, 50000);`;
                                 const restartAction = call('button','press','button.grafiti_wall_grafiti_2026_restart');
                                 
@@ -543,14 +534,23 @@ views:
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
 
                                 const call = (domain, service, entity) => `
-                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  })();
+                                `.replace(/\n/g, ' ');
+
+                                const scriptCall = (service) => `
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('script', '${service}', {}); }
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                                  })();
                                 `.replace(/\n/g, ' ');
 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -657,14 +657,23 @@ views:
                                 const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
                                 
                                 const call = (domain, service, entity) => `
-                                  let h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
-                                  if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
-                                  else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('${domain}', '${service}', {entity_id: '${entity}'}); } 
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: '${domain}.${service}', service_data: { entity_id: '${entity}' } } } } })); }
+                                  })();
+                                `.replace(/\n/g, ' ');
+
+                                const scriptCall = (service) => `
+                                  (() => {
+                                    const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                                    if(h) { h.callService('script', '${service}', {}); }
+                                    else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                                  })();
                                 `.replace(/\n/g, ' ');
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -679,7 +688,7 @@ views:
                                     <div class="lbl" style="white-space:nowrap; pointer-events:none;">${label}</div>
                                   </div>`;
                                 
-                                const turnOnAction  = call('script','turn_on','script.turn_on_looking_glass_2026');
+                                const turnOnAction  = scriptCall('turn_on_looking_glass_2026');
                                 const shutOffAction = call('button','press','button.looking_glass_looking_glass_shutdown');
                                 const restartAction = call('button','press','button.looking_glass_looking_glass_restart');
                                 
@@ -807,7 +816,6 @@ views:
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -905,7 +913,6 @@ views:
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1003,7 +1010,6 @@ views:
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1119,7 +1125,6 @@ views:
                                 
                                 const btn = (label, icon, color, bg, border, enabled, action) => `
                                   <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                                    ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                                     style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                                     padding:10px 4px;border-radius:14px;
                                     border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1214,9 +1219,16 @@ views:
                           })();
                         `.replace(/\n/g, ' ');
 
+                        const scriptCall = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('script', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1230,7 +1242,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1239,7 +1250,7 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('script','turn_on','script.turn_on_pc_msi') + call('script','turn_on','script.turn_on_grft_projector_2026') + call('input_boolean','turn_off','input_boolean.grft_expander');
+                        const turnOnAction  = scriptCall('turn_on_pc_msi') + scriptCall('turn_on_grft_projector_2026') + call('input_boolean','turn_off','input_boolean.grft_expander');
                         const shutOffAction = call('button','press','button.grafiti_wall_grafiti_2026_shutdown') + `setTimeout(() => { ${call('script','turn_on','script.turn_off_grft_2026_projector')} }, 50000);` + call('input_boolean','turn_off','input_boolean.grft_expander');
                         const restartAction = call('button','press','button.grafiti_wall_grafiti_2026_restart') + call('input_boolean','turn_off','input_boolean.grft_expander');
 
@@ -1273,7 +1284,7 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">MORE OPTIONS</div>
                             <div style="display:flex;gap:8px;margin-bottom:8px;">
-                              ${dBtn('Projector ON','mdi:video','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_grft_projector_2026'))}
+                              ${dBtn('Projector ON','mdi:video','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', scriptCall('turn_on_grft_projector_2026'))}
                               ${dBtn('Projector OFF','mdi:video-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('script','turn_on','script.turn_off_grft_2026_projector'))}
                               ${dBtn('Dummy 3','mdi:wifi','#a78bfa','rgba(167,139,250,0.12)','rgba(167,139,250,0.26)')}
                             </div>
@@ -1356,9 +1367,16 @@ views:
                           })();
                         `.replace(/\n/g, ' ');
 
+                        const scriptCall = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('script', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1372,7 +1390,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1477,7 +1494,6 @@ views:
                         - pointer-events: auto
                     name: |
                       [[[
-                        // CHECK THIS ENTITY ID IF IT STILL SHOWS UNKNOWN!
                         const s = states['binary_sensor.192_168_10_63']; 
                         const state = s?.state?.toLowerCase?.() ?? '';
                         const online = ['on', 'online', 'connected', 'home', 'playing', 'idle', 'standby', 'active'].includes(state);
@@ -1492,9 +1508,16 @@ views:
                           })();
                         `.replace(/\n/g, ' ');
 
+                        const scriptCall = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('script', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1508,7 +1531,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1517,7 +1539,7 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('script','turn_on','script.turn_on_looking_glass_2026') + call('input_boolean','turn_off','input_boolean.looking_glass_expander');
+                        const turnOnAction  = scriptCall('turn_on_looking_glass_2026') + call('input_boolean','turn_off','input_boolean.looking_glass_expander');
                         const shutOffAction = call('button','press','button.looking_glass_looking_glass_shutdown') + call('input_boolean','turn_off','input_boolean.looking_glass_expander');
                         const restartAction = call('button','press','button.looking_glass_looking_glass_restart') + call('input_boolean','turn_off','input_boolean.looking_glass_expander');
 
@@ -1551,7 +1573,7 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
                             <div style="display:flex;gap:8px;">
-                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_looking_glass_2026'))}
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', scriptCall('turn_on_looking_glass_2026'))}
                               ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('button','press','button.looking_glass_looking_glass_shutdown'))}
                               ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', call('button','press','button.looking_glass_looking_glass_restart'))}
                             </div>
@@ -1631,7 +1653,6 @@ views:
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.preventDefault(); event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1645,7 +1666,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1768,7 +1788,6 @@ views:
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.preventDefault(); event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1782,7 +1801,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1791,7 +1809,15 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('switch','turn_on','switch.holobox_screen_socket_1') + `setTimeout(() => { ${call('script','turn_on','script.turn_on_holotube')} }, 1000);` + call('input_boolean','turn_off','input_boolean.holotube_expander');
+                        const scriptCall = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('script', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
+                        const turnOnAction  = call('switch','turn_on','switch.holobox_screen_socket_1') + `setTimeout(() => { ${scriptCall('turn_on_holotube')} }, 1000);` + call('input_boolean','turn_off','input_boolean.holotube_expander');
                         const shutOffAction = call('button','press','button.holotube2026_holotube2026_shutdown') + `setTimeout(() => { ${call('switch','turn_off','switch.holobox_screen_socket_1')} }, 60000);` + call('input_boolean','turn_off','input_boolean.holotube_expander');
                         const restartAction = call('button','press','button.holotube2026_holotube2026_restart') + call('input_boolean','turn_off','input_boolean.holotube_expander');
 
@@ -1825,7 +1851,7 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">COMPONENT CONTROL</div>
                             <div style="display:flex;gap:8px;margin-bottom:8px;">
-                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_holotube'))}
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', scriptCall('turn_on_holotube'))}
                               ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('button','press','button.holotube2026_holotube2026_shutdown'))}
                               ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', call('button','press','button.holotube2026_holotube2026_restart'))}
                             </div>
@@ -1910,7 +1936,6 @@ views:
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.preventDefault(); event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -1924,7 +1949,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -1933,7 +1957,15 @@ views:
                             <div class="lbl" style="pointer-events:none;">${label}</div>
                           </div>`;
 
-                        const turnOnAction  = call('script','turn_on','script.turn_on_touchtable') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
+                        const scriptCall = (service) => `
+                          (() => {
+                            const h = this.getRootNode()?.host?.hass || document.querySelector('home-assistant')?.hass || document.querySelector('hc-main')?.hass;
+                            if(h) { h.callService('script', '${service}', {}); }
+                            else { this.dispatchEvent(new CustomEvent('hass-action', {composed: true, bubbles: true, detail: { config: { tap_action: { action: 'call-service', service: 'script.${service}', service_data: {} } } } })); }
+                          })();
+                        `.replace(/\n/g, ' ');
+
+                        const turnOnAction  = scriptCall('turn_on_touchtable') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
                         const shutOffAction = call('button','press','button.touch_table_touch_table_2026_shutdown') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
                         const restartAction = call('button','press','button.touch_table_touch_table_2026_restart') + call('input_boolean','turn_off','input_boolean.ort_table_expander');
 
@@ -1967,7 +1999,7 @@ views:
 
                             <div style="font-size:11px;font-weight:600;color:rgba(232,237,248,0.35);letter-spacing:0.08em;margin-bottom:8px;">PC CONTROL</div>
                             <div style="display:flex;gap:8px;">
-                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', call('script','turn_on','script.turn_on_touchtable'))}
+                              ${dBtn('Turn ON PC','mdi:monitor','#4ade80','rgba(74,222,128,0.13)','rgba(74,222,128,0.28)', scriptCall('turn_on_touchtable'))}
                               ${dBtn('Turn OFF PC','mdi:monitor-off','#f87171','rgba(248,113,113,0.12)','rgba(248,113,113,0.26)', call('button','press','button.touch_table_touch_table_2026_shutdown'))}
                               ${dBtn('Restart PC','mdi:restart','#fbbf24','rgba(251,191,36,0.12)','rgba(251,191,36,0.26)', call('button','press','button.touch_table_touch_table_2026_restart'))}
                             </div>
@@ -2052,7 +2084,6 @@ views:
 
                         const btn = (label, icon, color, bg, border, enabled, action) => `
                           <div onclick="event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
-                            ontouchend="event.preventDefault(); event.stopPropagation(); if(${enabled}){ let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action} }"
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px;
                             border:1px solid ${enabled ? border : 'rgba(255,255,255,0.05)'};
@@ -2066,7 +2097,6 @@ views:
 
                         const dBtn = (label, icon, color, bg, border, action='') => `
                           <div onclick="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}"
-                            ontouchend="event.stopPropagation(); let l=this.querySelector('.lbl'); if(l)l.innerText='Wait...'; this.style.opacity='0.5'; setTimeout(()=>{this.style.opacity='1'; if(l)l.innerText='${label}';}, 2500); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid ${border};background:${bg};color:${color};
@@ -2077,7 +2107,6 @@ views:
 
                         const mBtn = (label, action='') => `
                           <div onclick="event.stopPropagation(); ${action}"
-                            ontouchend="event.stopPropagation(); ${action}" 
                             style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
                             padding:12px 4px;border-radius:14px; transition: all 0.2s;
                             border:1px solid rgba(192,132,252,0.28);background:rgba(192,132,252,0.13);color:#c084fc;
